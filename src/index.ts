@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv"
+import { BASE_PROMPT, CONTINUE_PROMPT } from "./prompts";
 
 dotenv.config();
 
@@ -9,17 +10,28 @@ async function main(){
     generationConfig: {
       candidateCount: 1,
       stopSequences: [],
-      maxOutputTokens: 1000,
+      maxOutputTokens: 8000,
       temperature: 0,
   },});
 
-  const prompt: string = "Rank top 5 ipl teams, just give me the names";
+  const inputPrompt = "Build a simple todo app using react"
 
-  const result = await model.generateContentStream(prompt);
-  
-  for await (const data of result.stream){
-    const text = data.text();
-    process.stdout.write(text);
+  const prompts = [
+    // Add more prompts as needed
+    BASE_PROMPT + CONTINUE_PROMPT,
+    inputPrompt,
+  ];
+
+  for (const prompt of prompts) {
+    const result = await model.generateContentStream(prompt);
+
+    for await (const data of result.stream) {
+      const text = data.text();
+      process.stdout.write(text);
+    }
+
+    // Optionally, add a delay or other processing between prompts
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
   }
 }
 
