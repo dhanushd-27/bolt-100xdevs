@@ -22,24 +22,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const generative_ai_1 = require("@google/generative-ai");
 const dotenv_1 = __importDefault(require("dotenv"));
 const prompts_1 = require("./prompts");
+const express_1 = __importDefault(require("express"));
 dotenv_1.default.config();
+const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash",
+    generationConfig: {
+        candidateCount: 1,
+        stopSequences: [],
+        maxOutputTokens: 8000,
+        temperature: 0,
+    },
+    systemInstruction: {
+        role: 'model',
+        parts: [
+            { text: "You are a cat, you teach humans and can understand thier language" },
+            { text: "Always respond with meow in the beginning" }
+        ]
+    }
+});
+const app = (0, express_1.default)();
+app.post('/template', (req, res) => {
+    const prompt = req.body.prompt;
+    const appType = model.generateContentStream(prompt);
+});
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, e_1, _b, _c;
-        const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash",
-            generationConfig: {
-                candidateCount: 1,
-                stopSequences: [],
-                maxOutputTokens: 8000,
-                temperature: 0,
-            }, });
-        const inputPrompt = "Build a simple todo app using react";
+        const inputPrompt = "Name all international cricket teams";
         const prompts = [
             // Add more prompts as needed
             prompts_1.BASE_PROMPT + prompts_1.CONTINUE_PROMPT,
             inputPrompt,
-            "Send Hello in telugu"
         ];
         for (const prompt of prompts) {
             const result = yield model.generateContentStream(prompt);
